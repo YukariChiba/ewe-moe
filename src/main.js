@@ -1,8 +1,9 @@
-import Vue from "vue";
+import { createApp } from "troisjs";
+import vuetify from "./plugins/vuetify";
 import App from "./App.vue";
 
-Vue.config.productionTip = false;
+const app = createApp(App);
 
-new Vue({
-  render: (h) => h(App),
-}).$mount("#app");
+app.use(vuetify);
+
+app.mount("#app");

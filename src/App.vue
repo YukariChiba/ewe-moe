@@ -1,28 +1,38 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
+  <div>
+    <v-app class="app">
+      <v-main>
+        <BottomNav />
+      </v-main>
+      <Background class="bg" />
+    </v-app>
   </div>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
+import Background from "./components/Background.vue";
+import BottomNav from "./components/BottomNav.vue";
 
 export default {
-  name: "App",
-  components: {
-    HelloWorld,
-  },
+  components: { Background, BottomNav },
 };
 </script>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+<style>
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.bg {
+  /* z-index: -999; */
+  position: absolute;
+  overflow: hidden;
+}
+
+.app {
+  overflow: hidden;
 }
 </style>

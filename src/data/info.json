@@ -1,0 +1,38 @@
+{
+  "title": "🐑",
+  "name": "Yukari Chiba",
+  "namedesc": "🐑 • 🏳️‍🌈 • 🌃 • 🎀 • 🖥️",
+  "desc": "Non sunt multiplicanda entia sine necessitate",
+  "links": [
+    {
+      "title": "Blog",
+      "icon": "post",
+      "url": "https://0x7f.cc"
+    },
+    {
+      "title": "Telegram",
+      "icon": "telegram",
+      "url": "https://t.me/CharlesYang"
+    },
+    {
+      "title": "Email",
+      "icon": "email",
+      "url": "mailto:i@ewe.moe"
+    },
+    {
+      "title": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/YukariChiba"
+    },
+    {
+      "title": "GitLab",
+      "icon": "gitlab",
+      "url": "https://gitlab.com/YukariChiba"
+    },
+    {
+      "title": "Twitter",
+      "icon": "twitter",
+      "url": "https://twitter.com/Charle_Yang"
+    }
+  ]
+}
