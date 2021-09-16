@@ -119,7 +119,7 @@ export default {
     const positionN = renderer.three.pointer.positionN;
     const points = this.$refs.points.points;
     const title = this.$refs.title;
-    this.textsize = Math.min(window.innerWidth, window.innerHeight) * 0.04;
+    this.textsize = Math.min(window.innerWidth, window.innerHeight) * 0.03;
     renderer.onBeforeRender(() => {
       this.timeCoef = lerp(this.timeCoef, this.targetTimeCoef, 0.02);
       this.uniforms.uTime.value += this.clock.getDelta() * this.timeCoef * 4;
