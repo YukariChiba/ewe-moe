@@ -43,6 +43,13 @@
         <RenderPass />
         <UnrealBloomPass :strength="2" :radius="0" :threshold="0" />
         <ZoomBlurPass :strength="zoomStrength" />
+        <FilmPass
+          :noiseIntensity="5"
+          :scanlinesIntensity="0.05"
+          :scanlinesCount="1024"
+          :grayscale="0"
+          v-if="showpopup"
+        />
       </EffectComposer>
     </Renderer>
     <Popup :show="showpopup" @pclose="togglepopup(false)" />
