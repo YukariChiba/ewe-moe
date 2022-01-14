@@ -52,6 +52,9 @@ export default {
 .v-btn {
   background-color: rgba(255, 0, 0, 0);
   text-shadow: 0 0 10px #fff;
+  &:before {
+    box-shadow: unset;
+  }
 }
 
 .v-col {

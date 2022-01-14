@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :style="{ filter: 'invert(' + invert + ')' }">
     <Renderer
       ref="renderer"
       pointer
@@ -52,7 +52,12 @@
         />
       </EffectComposer>
     </Renderer>
-    <Popup :show="showpopup" @pclose="togglepopup(false)" />
+    <Popup
+      :show="showpopup"
+      @pclose="togglepopup(false)"
+      @pattern="updateColors"
+      :cnt="cnt"
+    />
   </div>
 </template>
 
@@ -83,6 +88,8 @@ export default {
     envColor: "#0060ff",
     stbyColor: "#ff0000",
     showpopup: false,
+    invert: 0,
+    cnt: 0,
   }),
   setup() {
     const POINTS_COUNT = 40000;
@@ -140,6 +147,13 @@ export default {
   },
   methods: {
     togglepopup(val) {
+      this.cnt++;
+      if (this.cnt > 5) {
+        this.invert = 100;
+        setTimeout(() => {
+          this.invert = 0;
+        }, 500);
+      }
       this.showpopup = val;
     },
     touchMove(event) {

@@ -2,12 +2,11 @@
   <v-dialog v-model="show" persistent>
     <v-card>
       <v-card-title class="justify-center avatar-section">
-        <v-avatar size="128" color="primary" class="avatar">
+        <v-avatar size="128" color="primary" class="avatar" @click="pattern">
           <img src="/assets/avatar.jpg" alt="Yukari" />
         </v-avatar>
       </v-card-title>
-      <v-card-title class="text-h5 justify-center">
-        {{ info.name }}
+      <v-card-title v-html="info.name" class="text-h5 justify-center">
       </v-card-title>
       <v-card-title class="text-h6 justify-center">{{
         info.namedesc
@@ -27,11 +26,17 @@
 import info from "../data/info.json";
 
 export default {
-  props: ["show"],
+  props: ["show", "cnt"],
   data: () => ({
     info: info,
   }),
   methods: {
+    pattern() {
+      this.$emit("pattern", 100);
+      setTimeout(() => {
+        this.$emit("pattern", 83);
+      }, 800 + (this.cnt > 5 ? 5000 : 0));
+    },
     pclose() {
       this.$emit("pclose", true);
     },
