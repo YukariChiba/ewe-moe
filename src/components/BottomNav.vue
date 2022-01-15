@@ -55,6 +55,13 @@ export default {
   &:before {
     box-shadow: unset;
   }
+  &:hover {
+    span {
+      display: none;
+    }
+    text-shadow: 0 0 5px #ccc;
+    transform: scale(2);
+  }
 }
 
 .v-col {

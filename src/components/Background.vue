@@ -1,5 +1,5 @@
 <template>
-  <div :style="{ filter: 'invert(' + invert + ')' }">
+  <div :class="invert ? 'bg inv' : 'bg'">
     <Renderer
       ref="renderer"
       pointer
@@ -10,7 +10,7 @@
       <Camera :position="{ z: 0 }" :fov="50" />
       <Scene>
         <AmbientLight color="#808080" :intensity="0.5" />
-        <PointLight ref="light" :color="envColor" :intensity="0.5" />
+        <PointLight ref="light" :color="envColor" :intensity="0.3" />
         <Text
           ref="title"
           @pointerOver="titleOver"
@@ -41,7 +41,7 @@
       </Scene>
       <EffectComposer>
         <RenderPass />
-        <UnrealBloomPass :strength="2" :radius="0" :threshold="0" />
+        <UnrealBloomPass :strength="3" :radius="0.8" :threshold="0" />
         <ZoomBlurPass :strength="zoomStrength" />
         <FilmPass
           :noiseIntensity="5"
@@ -92,7 +92,10 @@ export default {
     cnt: 0,
   }),
   setup() {
-    const POINTS_COUNT = 40000;
+    let POINTS_COUNT = 40000;
+
+    if (window.innerWidth > 1920 || window.innerHeight > 1080)
+      POINTS_COUNT = 100000;
 
     const palette = niceColors[83];
 
@@ -152,7 +155,7 @@ export default {
         this.invert = 100;
         setTimeout(() => {
           this.invert = 0;
-        }, 500);
+        }, 1000);
       }
       this.showpopup = val;
     },
@@ -200,3 +203,12 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.bg {
+  transition: 0.3s filter linear, 0.3s -webkit-filter linear;
+  &.inv {
+    filter: invert(100%);
+  }
+}
+</style>
