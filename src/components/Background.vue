@@ -5,6 +5,7 @@
       pointer
       resize="window"
       @mousemove="mouseMove"
+      @mousewheel="randomColors"
       @touchmove="touchMove"
     >
       <Camera :position="{ z: 0 }" :fov="50" />
@@ -23,6 +24,18 @@
           :position="{ x: 0, y: 10, z: -100 }"
         >
           <PhongMaterial color="#666666" />
+        </Text>
+        <Text
+          v-if="hint"
+          ref="hint"
+          :text="hint"
+          align="center"
+          font-src="/assets/font.json"
+          :size="0.01"
+          :height="0"
+          :position="{ x: 0, y: 0.16, z: -0.4 }"
+        >
+          <PhongMaterial color="#fff" />
         </Text>
         <Points ref="points" :position="{ z: -150 }">
           <BufferGeometry :attributes="attributes" />
@@ -90,6 +103,7 @@ export default {
     showpopup: false,
     invert: 0,
     cnt: 0,
+    hint: null,
   }),
   setup() {
     let POINTS_COUNT = 40000;
@@ -188,6 +202,9 @@ export default {
       this.envColor = t;
       if (e.over) this.targetTimeCoef = 40;
       else this.targetTimeCoef = 39.9;
+    },
+    randomColors() {
+      this.updateColors(randInt(0, niceColors.length - 1));
     },
     updateColors(ip = 83) {
       const colorAttribute = this.$refs.points.geometry.attributes.color;
