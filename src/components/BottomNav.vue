@@ -39,7 +39,7 @@ export default {
 <style lang="scss" scoped>
 .nav-mobile {
   background-color: rgba(255, 0, 0, 0);
-  z-index: 999;
+  z-index: 99;
   position: absolute;
   bottom: 10vh;
   width: 100%;

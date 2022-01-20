@@ -1,10 +1,11 @@
 <template>
   <div>
     <v-app class="app">
-      <v-main>
+      <Warning :show="!show" @dialogClose="show = true" />
+      <v-main v-if="show">
         <BottomNav />
       </v-main>
-      <Background class="bg" />
+      <Background v-if="show" class="bg" />
     </v-app>
   </div>
 </template>
@@ -12,9 +13,16 @@
 <script>
 import Background from "./components/Background.vue";
 import BottomNav from "./components/BottomNav.vue";
+import Warning from "./components/Warning.vue";
 
 export default {
-  components: { Background, BottomNav },
+  data: () => ({
+    show: false,
+  }),
+  mounted() {
+    this.show = localStorage.getItem("warningClose") || false
+  },
+  components: { Background, BottomNav, Warning },
 };
 </script>
 
