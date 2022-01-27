@@ -11,7 +11,7 @@
       <v-card-title class="text-h6 justify-center">{{
         info.namedesc
       }}</v-card-title>
-      <v-card-text>{{ info.desc }}</v-card-text>
+      <v-card-text class="text-center" v-html="info.desc" />
 
       <v-card-actions class="justify-center">
         <v-btn color="green darken-1" block large text @click="pclose"
@@ -24,13 +24,28 @@
 
 <script>
 import info from "../data/info.json";
+import axios from "axios";
 
 export default {
   props: ["show", "cnt"],
   data: () => ({
     info: info,
   }),
+  watch: {
+    show: function (val) {
+      if (val == false) setTimeout(() => this.update_quote(), 300);
+    },
+  },
   methods: {
+    update_quote() {
+      axios
+        .get("https://quote.nia.workers.dev/")
+        .then((resp) => {
+          if (resp.data.quote)
+            this.info.desc = resp.data.quote.replace(/\r?\n/g, "<br />");
+        })
+        .catch();
+    },
     pattern() {
       this.$emit("pattern", 100);
       setTimeout(() => {
