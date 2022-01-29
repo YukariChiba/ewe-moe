@@ -8,10 +8,15 @@
       @mousewheel="randomColors"
       @touchmove="touchMove"
     >
-      <Camera :position="{ z: 0 }" :fov="50" />
+      <Camera :position="{ z: 200 }" :fov="50" />
       <Scene>
         <AmbientLight color="#808080" :intensity="0.5" />
-        <PointLight ref="light" :color="envColor" :intensity="0.3" />
+        <PointLight
+          ref="light"
+          :color="envColor"
+          :intensity="0.3"
+          :position="{ z: 200 }"
+        />
         <Text
           ref="title"
           @pointerOver="titleOver"
@@ -20,8 +25,8 @@
           align="center"
           :size="textsize"
           @click="togglepopup(true)"
-          :height="5"
-          :position="{ x: 0, y: 10, z: -100 }"
+          :height="0"
+          :position="{ x: 0, y: 10, z: 100 }"
         >
           <PhongMaterial color="#666666" />
         </Text>
@@ -33,11 +38,11 @@
           font-src="/assets/font.json"
           :size="0.01"
           :height="0"
-          :position="{ x: 0, y: 0.16, z: -0.4 }"
+          :position="{ x: 0, y: 20, z: 100 }"
         >
           <PhongMaterial color="#fff" />
         </Text>
-        <Points ref="points" :position="{ z: -150 }">
+        <Points ref="points" :position="{ z: 50 }">
           <BufferGeometry :attributes="attributes" />
           <ShaderMaterial
             :props="{
@@ -51,6 +56,18 @@
             <Texture src="/assets/sprite.png" uniform="uTexture" />
           </ShaderMaterial>
         </Points>
+
+        <InstancedMesh ref="imesh" :count="NUM_INSTANCES">
+          <BoxGeometry :width="2" :height="2" :depth="10" />
+          <StandardMaterial
+            :props="{
+              transparent: true,
+              opacity: cnt > 5 ? 0.9 : 0,
+              metalness: 0.8,
+              roughness: 0.5,
+            }"
+          />
+        </InstancedMesh>
       </Scene>
       <EffectComposer>
         <RenderPass />
@@ -58,8 +75,8 @@
         <ZoomBlurPass :strength="zoomStrength" />
         <FilmPass
           :noiseIntensity="5"
-          :scanlinesIntensity="0.05"
-          :scanlinesCount="1024"
+          :scanlinesIntensity="0.3"
+          :scanlinesCount="512"
           :grayscale="0"
           v-if="showpopup"
         />
@@ -77,7 +94,7 @@
 <script>
 import { vertexShader, fragmentShader } from "../data/shaders";
 
-import { Clock, Color, MathUtils, Vector3 } from "three";
+import { Object3D, Clock, Color, MathUtils, Vector3 } from "three";
 
 import { lerp } from "troisjs";
 
@@ -136,6 +153,22 @@ export default {
 
     const clock = new Clock();
 
+    const NUM_INSTANCES = 40;
+    const instances = [];
+    const target = new Vector3();
+    const dummyO = new Object3D();
+    const dummyV = new Vector3();
+    for (let i = 0; i < NUM_INSTANCES; i++) {
+      instances.push({
+        position: new Vector3(rndFS(200), rndFS(200), rndFS(200)),
+        scale: rnd(0.2, 1),
+        scaleZ: rnd(0.7, 1),
+        velocity: new Vector3(rndFS(20), rndFS(20), rndFS(20)),
+        attraction: 0.4 + rnd(-0.01, 0.01),
+        vlimit: 4.2 + rnd(-0.1, 0.1),
+      });
+    }
+
     return {
       POINTS_COUNT,
       attributes,
@@ -143,34 +176,67 @@ export default {
       vertexShader,
       fragmentShader,
       clock,
+      NUM_INSTANCES,
+      instances,
+      target,
+      dummyO,
+      dummyV,
     };
   },
   mounted() {
-    const renderer = this.$refs.renderer;
-    const positionN = renderer.three.pointer.positionN;
     const points = this.$refs.points.points;
     const title = this.$refs.title;
     this.textsize = Math.min(window.innerWidth, window.innerHeight) * 0.03;
-    renderer.onBeforeRender(() => {
+    this.imesh = this.$refs.imesh.mesh;
+    const positionN = this.$refs.renderer.three.pointer.positionN;
+    const positionV3 = this.$refs.renderer.three.pointer.positionV3;
+    for (let i = 0; i < this.NUM_INSTANCES; i++) {
+      const { position, scale, scaleZ } = this.instances[i];
+      this.dummyO.position.copy(position);
+      this.dummyO.scale.set(scale, scale, scaleZ);
+      this.dummyO.updateMatrix();
+      this.imesh.setMatrixAt(i, this.dummyO.matrix);
+    }
+    this.imesh.instanceMatrix.needsUpdate = true;
+    this.$refs.renderer.onBeforeRender(() => {
       this.timeCoef = lerp(this.timeCoef, this.targetTimeCoef, 0.02);
       this.uniforms.uTime.value += this.clock.getDelta() * this.timeCoef * 4;
       this.zoomStrength = this.timeCoef * 0.004;
-
-      const da = 0.05;
+      const da = 0.1;
       const tiltX = lerp(points.rotation.x, positionN.y * da, 0.02);
       const tiltY = lerp(points.rotation.y, -positionN.x * da, 0.02);
       points.rotation.set(tiltX, tiltY, 0);
+
+      this.target.copy(positionV3);
+      for (let i = 0; i < this.NUM_INSTANCES; i++) {
+        const { position, scale, scaleZ, velocity, attraction, vlimit } =
+          this.instances[i];
+        this.dummyV
+          .copy(this.target)
+          .sub(position)
+          .normalize()
+          .multiplyScalar(attraction);
+        velocity.add(this.dummyV).clampScalar(-vlimit, vlimit);
+        position.add(velocity);
+        this.dummyO.position.copy(position);
+        this.dummyO.scale.set(scale, scale, scaleZ);
+        this.dummyO.lookAt(this.dummyV.copy(position).add(velocity));
+        this.dummyO.updateMatrix();
+        this.imesh.setMatrixAt(i, this.dummyO.matrix);
+      }
+      this.imesh.instanceMatrix.needsUpdate = true;
     });
   },
   methods: {
     togglepopup(val) {
       this.cnt++;
-      if (this.cnt > 5) {
-        this.invert = 100;
-        setTimeout(() => {
-          this.invert = 0;
-        }, 1000);
-      }
+      if (!val)
+        if (this.cnt > 5) {
+          this.invert = 100;
+          setTimeout(() => {
+            this.invert = 0;
+          }, 1000);
+        }
       this.showpopup = val;
     },
     touchMove(event) {
