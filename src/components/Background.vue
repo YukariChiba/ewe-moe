@@ -31,6 +31,24 @@
           <PhongMaterial color="#666666" />
         </Text>
         <Text
+          v-if="cnt > 5"
+          ref="title_extra"
+          :text="info.title"
+          font-src="/assets/font.json"
+          align="center"
+          :size="textsize * 1.2 + 10"
+          :height="0"
+          :position="{ x: 0, y: 10, z: 100 }"
+        >
+          <PhongMaterial
+            color="#666666"
+            :props="{
+              transparent: true,
+              opacity: 0.2,
+            }"
+          />
+        </Text>
+        <Text
           v-if="hint"
           ref="hint"
           :text="hint"
@@ -58,12 +76,12 @@
         </Points>
 
         <InstancedMesh ref="imesh" :count="NUM_INSTANCES">
-          <BoxGeometry :width="2" :height="2" :depth="10" />
+          <BoxGeometry :width="2" :height="2" :depth="15" />
           <StandardMaterial
             :props="{
               transparent: true,
               opacity: cnt > 5 ? 0.9 : 0,
-              metalness: 0.8,
+              metalness: 0.9,
               roughness: 0.5,
             }"
           />
@@ -140,7 +158,9 @@ export default {
       v3.toArray(positions, i * 3);
       color.set(palette[Math.floor(rnd(0, palette.length))]);
       color.toArray(colors, i * 3);
-      sizes[i] = rnd(5, 20);
+      let rand = rnd(5, 20);
+      if (rand > 19.5) rand = rnd(40, 80);
+      sizes[i] = rand;
     }
 
     const attributes = [
@@ -232,10 +252,12 @@ export default {
       this.cnt++;
       if (!val)
         if (this.cnt > 5) {
-          this.invert = 100;
           setTimeout(() => {
-            this.invert = 0;
-          }, 1000);
+            this.invert = 100;
+            setTimeout(() => {
+              this.invert = 0;
+            }, 1300);
+          }, 300);
         }
       this.showpopup = val;
     },

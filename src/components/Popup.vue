@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="show" persistent>
-    <v-card>
+    <v-card class="transparent-card">
       <v-card-title class="justify-center avatar-section">
         <v-avatar size="128" color="primary" class="avatar" @click="pattern">
           <img src="/assets/avatar.jpg" alt="Yukari" />
@@ -14,7 +14,7 @@
       <v-card-text class="text-center" v-html="info.desc" />
 
       <v-card-actions class="justify-center">
-        <v-btn color="green darken-1" block large text @click="pclose"
+        <v-btn variant="outlined" class="main-btn" color="green darken-1" block large text @click="pclose"
           ><v-icon>mdi-check</v-icon>
         </v-btn>
       </v-card-actions>
@@ -39,10 +39,10 @@ export default {
   methods: {
     update_quote() {
       axios
-        .get("https://quote.nia.workers.dev/")
+        .get("https://v1.hitokoto.cn/?c=a&min_length=10")
         .then((resp) => {
-          if (resp.data.quote)
-            this.info.desc = resp.data.quote.replace(/\r?\n/g, "<br />");
+          if (resp.data.hitokoto)
+            this.info.desc = resp.data.hitokoto.replace(/\r?\n/g, "<br />");
         })
         .catch();
     },
@@ -72,5 +72,13 @@ export default {
 
 .avatar-section {
   overflow: visible;
+}
+
+.main-btn {
+  background-color: rgba(0,0,0,0.2)
+}
+
+.transparent-card {
+  background-color: rgba(0,0,0,0.6);
 }
 </style>
