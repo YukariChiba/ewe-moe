@@ -1,6 +1,7 @@
 <template>
   <div :class="invert ? 'bg inv' : 'bg'">
     <Renderer
+      :antialias="true"
       ref="renderer"
       pointer
       resize="window"
@@ -74,14 +75,24 @@
             <Texture src="/assets/sprite.png" uniform="uTexture" />
           </ShaderMaterial>
         </Points>
-
+        <InstancedMesh ref="lines" :count="NUM_LINE_INSTANCES">
+          <ConeGeometry :radius="2" :height="250" :radialSegments="32" />
+          <StandardMaterial
+            :props="{
+              transparent: true,
+              opacity: cnt > 5 ? 0.7 : 0,
+              metalness: 0.4,
+              roughness: 1,
+            }"
+          />
+        </InstancedMesh>
         <InstancedMesh ref="imesh" :count="NUM_INSTANCES">
-          <BoxGeometry :width="2" :height="2" :depth="15" />
+          <BoxGeometry :width="1" :height="2" :depth="15" />
           <StandardMaterial
             :props="{
               transparent: true,
               opacity: cnt > 5 ? 0.9 : 0,
-              metalness: 0.9,
+              metalness: 0.7,
               roughness: 0.5,
             }"
           />
@@ -139,6 +150,7 @@ export default {
     invert: 0,
     cnt: 0,
     hint: null,
+    linespeed: new Vector3(0, 0, 4),
   }),
   setup() {
     let POINTS_COUNT = 40000;
@@ -174,7 +186,9 @@ export default {
     const clock = new Clock();
 
     const NUM_INSTANCES = 40;
+    const NUM_LINE_INSTANCES = 30;
     const instances = [];
+    const lineinstances = [];
     const target = new Vector3();
     const dummyO = new Object3D();
     const dummyV = new Vector3();
@@ -184,8 +198,8 @@ export default {
         scale: rnd(0.2, 1),
         scaleZ: rnd(0.7, 1),
         velocity: new Vector3(rndFS(20), rndFS(20), rndFS(20)),
-        attraction: 0.4 + rnd(-0.01, 0.01),
-        vlimit: 4.2 + rnd(-0.1, 0.1),
+        attraction: 0.2 + rnd(-0.01, 0.01),
+        vlimit: 3.2 + rnd(-0.1, 0.1),
       });
     }
 
@@ -197,7 +211,9 @@ export default {
       fragmentShader,
       clock,
       NUM_INSTANCES,
+      NUM_LINE_INSTANCES,
       instances,
+      lineinstances,
       target,
       dummyO,
       dummyV,
@@ -208,6 +224,7 @@ export default {
     const title = this.$refs.title;
     this.textsize = Math.min(window.innerWidth, window.innerHeight) * 0.03;
     this.imesh = this.$refs.imesh.mesh;
+    this.lines = this.$refs.lines.mesh;
     const positionN = this.$refs.renderer.three.pointer.positionN;
     const positionV3 = this.$refs.renderer.three.pointer.positionV3;
     for (let i = 0; i < this.NUM_INSTANCES; i++) {
@@ -217,15 +234,32 @@ export default {
       this.dummyO.updateMatrix();
       this.imesh.setMatrixAt(i, this.dummyO.matrix);
     }
+    for (let i = 0; i < this.NUM_LINE_INSTANCES; i++) {
+      const dummyO = new Object3D();
+      const position = new Vector3(rndFS(200), rndFS(200), rndFS(200) - 400);
+      this.lineinstances.push(position);
+      const scale = rnd(0.2, 1);
+      const scaleZ = rnd(0.7, 1);
+      dummyO.position.copy(position);
+      dummyO.scale.set(scale, scale, scaleZ);
+      dummyO.updateMatrix();
+      this.lines.setMatrixAt(i, dummyO.matrix);
+    }
     this.imesh.instanceMatrix.needsUpdate = true;
     this.$refs.renderer.onBeforeRender(() => {
       this.timeCoef = lerp(this.timeCoef, this.targetTimeCoef, 0.02);
       this.uniforms.uTime.value += this.clock.getDelta() * this.timeCoef * 4;
       this.zoomStrength = this.timeCoef * 0.004;
-      const da = 0.1;
+      const da = 0.3;
       const tiltX = lerp(points.rotation.x, positionN.y * da, 0.02);
       const tiltY = lerp(points.rotation.y, -positionN.x * da, 0.02);
       points.rotation.set(tiltX, tiltY, 0);
+      this.lines.rotation.set(tiltX, tiltY, 0);
+      if (this.$refs.title.mesh)
+        this.$refs.title.mesh.rotation.set(tiltX * 2, tiltY * 2, 0);
+      if (this.cnt > 5)
+        if (this.$refs.title_extra.mesh)
+          this.$refs.title_extra.mesh.rotation.set(tiltX * 2, tiltY * 2, 0);
 
       this.target.copy(positionV3);
       for (let i = 0; i < this.NUM_INSTANCES; i++) {
@@ -244,6 +278,22 @@ export default {
         this.dummyO.updateMatrix();
         this.imesh.setMatrixAt(i, this.dummyO.matrix);
       }
+      for (let i = 0; i < this.NUM_LINE_INSTANCES; i++) {
+        const dummyO = new Object3D();
+        dummyO.position.copy(this.lineinstances[i]);
+        if (dummyO.position.z < 300) {
+          dummyO.position.add(this.linespeed);
+        } else {
+          dummyO.position.copy(
+            new Vector3(rndFS(200), rndFS(200), rndFS(200) - 200)
+          );
+        }
+        dummyO.rotation.set(-Math.PI / 2, 0, 0, "XYZ");
+        dummyO.updateMatrix();
+        this.lines.setMatrixAt(i, dummyO.matrix);
+        this.lineinstances[i].copy(dummyO.position);
+      }
+      this.lines.instanceMatrix.needsUpdate = true;
       this.imesh.instanceMatrix.needsUpdate = true;
     });
   },
@@ -288,8 +338,13 @@ export default {
       var t = this.stbyColor;
       this.stbyColor = this.envColor;
       this.envColor = t;
-      if (e.over) this.targetTimeCoef = 40;
-      else this.targetTimeCoef = 39.9;
+      if (e.over) {
+        this.linespeed.z = this.linespeed.z + 4;
+        this.targetTimeCoef = 40;
+      } else {
+        this.linespeed.z = this.linespeed.z - 4;
+        this.targetTimeCoef = 39.9;
+      }
     },
     randomColors() {
       this.updateColors(randInt(0, niceColors.length - 1));
@@ -313,7 +368,7 @@ export default {
 .bg {
   transition: 0.3s filter linear, 0.3s -webkit-filter linear;
   &.inv {
-    filter: invert(100%);
+    filter: invert(100%) brightness(1.5) hue-rotate(90deg);
   }
 }
 </style>

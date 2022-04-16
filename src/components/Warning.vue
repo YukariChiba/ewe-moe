@@ -26,7 +26,7 @@
         </p>
       </v-card-text>
       <v-card-actions class="justify-center flex-shrink-1">
-        <v-btn class="pa-4" block size="x-large" @click="close" :disabled="cnt"
+        <v-btn class="pa-4" block size="x-large" @click="close" :disabled="cnt > 0"
           >我已知悉，点击此处以关闭 {{ cnt > 0 ? "(" + cnt + ")" : "" }}</v-btn
         >
       </v-card-actions>
