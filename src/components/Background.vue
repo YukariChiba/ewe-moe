@@ -80,7 +80,7 @@
           <StandardMaterial
             :props="{
               transparent: true,
-              opacity: cnt > 5 ? 0.7 : 0,
+              opacity: cnt > 10 ? 0.7 : 0,
               metalness: 0.4,
               roughness: 1,
             }"
