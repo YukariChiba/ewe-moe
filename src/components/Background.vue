@@ -171,7 +171,7 @@ export default {
       color.set(palette[Math.floor(rnd(0, palette.length))]);
       color.toArray(colors, i * 3);
       let rand = rnd(5, 20);
-      if (rand > 19.5) rand = rnd(40, 80);
+      if (rand > 19.7) rand = rnd(40, 70);
       sizes[i] = rand;
     }
 
