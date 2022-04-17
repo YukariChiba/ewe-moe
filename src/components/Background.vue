@@ -37,9 +37,9 @@
           :text="info.title"
           font-src="/assets/font.json"
           align="center"
-          :size="textsize * 1.2 + 10"
+          :size="textsize * 1.8 + 10"
           :height="0"
-          :position="{ x: 0, y: 10, z: 100 }"
+          :position="{ x: 0, y: 10, z: 80 }"
         >
           <PhongMaterial
             color="#666666"
@@ -76,7 +76,7 @@
           </ShaderMaterial>
         </Points>
         <InstancedMesh ref="lines" :count="NUM_LINE_INSTANCES">
-          <ConeGeometry :radius="2" :height="250" :radialSegments="32" />
+          <ConeGeometry :radius="1" :height="300" :radialSegments="32" />
           <StandardMaterial
             :props="{
               transparent: true,
@@ -236,7 +236,7 @@ export default {
     }
     for (let i = 0; i < this.NUM_LINE_INSTANCES; i++) {
       const dummyO = new Object3D();
-      const position = new Vector3(rndFS(200), rndFS(200), rndFS(200) - 400);
+      const position = new Vector3(rndFS(200), rndFS(200), rndFS(300) - 500);
       this.lineinstances.push(position);
       const scale = rnd(0.2, 1);
       const scaleZ = rnd(0.7, 1);
@@ -278,22 +278,24 @@ export default {
         this.dummyO.updateMatrix();
         this.imesh.setMatrixAt(i, this.dummyO.matrix);
       }
-      for (let i = 0; i < this.NUM_LINE_INSTANCES; i++) {
-        const dummyO = new Object3D();
-        dummyO.position.copy(this.lineinstances[i]);
-        if (dummyO.position.z < 300) {
-          dummyO.position.add(this.linespeed);
-        } else {
-          dummyO.position.copy(
-            new Vector3(rndFS(200), rndFS(200), rndFS(200) - 200)
-          );
+      if (this.cnt > 10) {
+        for (let i = 0; i < this.NUM_LINE_INSTANCES; i++) {
+          const dummyO = new Object3D();
+          dummyO.position.copy(this.lineinstances[i]);
+          if (dummyO.position.z < 300) {
+            dummyO.position.add(this.linespeed);
+          } else {
+            dummyO.position.copy(
+              new Vector3(rndFS(200), rndFS(200), rndFS(300) - 300)
+            );
+          }
+          dummyO.rotation.set(-Math.PI / 2, 0, 0, "XYZ");
+          dummyO.updateMatrix();
+          this.lines.setMatrixAt(i, dummyO.matrix);
+          this.lineinstances[i].copy(dummyO.position);
         }
-        dummyO.rotation.set(-Math.PI / 2, 0, 0, "XYZ");
-        dummyO.updateMatrix();
-        this.lines.setMatrixAt(i, dummyO.matrix);
-        this.lineinstances[i].copy(dummyO.position);
+        this.lines.instanceMatrix.needsUpdate = true;
       }
-      this.lines.instanceMatrix.needsUpdate = true;
       this.imesh.instanceMatrix.needsUpdate = true;
     });
   },
