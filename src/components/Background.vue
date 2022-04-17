@@ -16,7 +16,7 @@
           ref="light"
           :color="envColor"
           :intensity="0.3"
-          :position="{ z: 200 }"
+          :position="lightposition"
         />
         <Text
           ref="title"
@@ -24,7 +24,11 @@
           :text="info.title"
           font-src="/assets/font.json"
           align="center"
-          :size="textsize"
+          :size="
+            introcnt.length > NUM_INTRO_INSTANCES * 0.8
+              ? textsize
+              : (textsize * introcnt.length) / (NUM_INTRO_INSTANCES * 0.8)
+          "
           @click="togglepopup(true)"
           :height="0"
           :position="{ x: 0, y: 10, z: 100 }"
@@ -37,7 +41,7 @@
           :text="info.title"
           font-src="/assets/font.json"
           align="center"
-          :size="textsize * 1.8 + 10"
+          :size="extrasize"
           :height="0"
           :position="{ x: 0, y: 10, z: 80 }"
         >
@@ -83,6 +87,22 @@
               opacity: cnt > 10 ? 0.7 : 0,
               metalness: 0.4,
               roughness: 1,
+            }"
+          />
+        </InstancedMesh>
+        <InstancedMesh
+          ref="intro"
+          v-if="introshow"
+          :count="NUM_INTRO_INSTANCES"
+        >
+          <SphereGeometry :radius="4" />
+          <StandardMaterial
+            color="#666666"
+            :props="{
+              transparent: true,
+              opacity: 1 - introcnt.length / NUM_INTRO_INSTANCES,
+              metalness: 0,
+              roughness: 0.5,
             }"
           />
         </InstancedMesh>
@@ -142,6 +162,7 @@ export default {
     zoomStrength: 0.5,
     timeCoef: 1,
     textsize: 30,
+    extrasize: 30,
     info: info,
     targetTimeCoef: 1,
     envColor: "#0060ff",
@@ -149,8 +170,17 @@ export default {
     showpopup: false,
     invert: 0,
     cnt: 0,
+    introshow: true,
+    introcnt: [],
     hint: null,
+    lightposition: { x: 0, y: 0, z: 200 },
     linespeed: new Vector3(0, 0, 4),
+    NUM_INSTANCES: 40,
+    NUM_LINE_INSTANCES: 30,
+    NUM_INTRO_INSTANCES: 300,
+    instances: [],
+    lineinstances: [],
+    introinstances: [],
   }),
   setup() {
     let POINTS_COUNT = 40000;
@@ -185,15 +215,30 @@ export default {
 
     const clock = new Clock();
 
-    const NUM_INSTANCES = 40;
-    const NUM_LINE_INSTANCES = 30;
-    const instances = [];
-    const lineinstances = [];
     const target = new Vector3();
     const dummyO = new Object3D();
     const dummyV = new Vector3();
-    for (let i = 0; i < NUM_INSTANCES; i++) {
-      instances.push({
+
+    return {
+      POINTS_COUNT,
+      attributes,
+      uniforms,
+      clock,
+      target,
+      dummyO,
+      dummyV,
+    };
+  },
+  mounted() {
+    const points = this.$refs.points.points;
+    this.textsize = Math.min(window.innerWidth, window.innerHeight) * 0.03;
+    this.imesh = this.$refs.imesh.mesh;
+    this.intro = this.$refs.intro.mesh;
+    this.lines = this.$refs.lines.mesh;
+    const positionN = this.$refs.renderer.three.pointer.positionN;
+    const positionV3 = this.$refs.renderer.three.pointer.positionV3;
+    for (let i = 0; i < this.NUM_INSTANCES; i++) {
+      this.instances.push({
         position: new Vector3(rndFS(200), rndFS(200), rndFS(200)),
         scale: rnd(0.2, 1),
         scaleZ: rnd(0.7, 1),
@@ -202,37 +247,22 @@ export default {
         vlimit: 3.2 + rnd(-0.1, 0.1),
       });
     }
-
-    return {
-      POINTS_COUNT,
-      attributes,
-      uniforms,
-      vertexShader,
-      fragmentShader,
-      clock,
-      NUM_INSTANCES,
-      NUM_LINE_INSTANCES,
-      instances,
-      lineinstances,
-      target,
-      dummyO,
-      dummyV,
-    };
-  },
-  mounted() {
-    const points = this.$refs.points.points;
-    const title = this.$refs.title;
-    this.textsize = Math.min(window.innerWidth, window.innerHeight) * 0.03;
-    this.imesh = this.$refs.imesh.mesh;
-    this.lines = this.$refs.lines.mesh;
-    const positionN = this.$refs.renderer.three.pointer.positionN;
-    const positionV3 = this.$refs.renderer.three.pointer.positionV3;
     for (let i = 0; i < this.NUM_INSTANCES; i++) {
       const { position, scale, scaleZ } = this.instances[i];
       this.dummyO.position.copy(position);
       this.dummyO.scale.set(scale, scale, scaleZ);
       this.dummyO.updateMatrix();
-      this.imesh.setMatrixAt(i, this.dummyO.matrix);
+      this.intro.setMatrixAt(i, this.dummyO.matrix);
+    }
+    for (let i = 0; i < this.NUM_INTRO_INSTANCES; i++) {
+      const dummyO = new Object3D();
+      const position = new Vector3(rndFS(300), rndFS(300), rndFS(30) + 100);
+      this.introinstances.push(position);
+      const scale = rnd(0.2, 1);
+      dummyO.scale.set(scale, scale, scale);
+      dummyO.position.copy(position);
+      dummyO.updateMatrix();
+      this.lines.setMatrixAt(i, dummyO.matrix);
     }
     for (let i = 0; i < this.NUM_LINE_INSTANCES; i++) {
       const dummyO = new Object3D();
@@ -262,21 +292,56 @@ export default {
           this.$refs.title_extra.mesh.rotation.set(tiltX * 2, tiltY * 2, 0);
 
       this.target.copy(positionV3);
-      for (let i = 0; i < this.NUM_INSTANCES; i++) {
-        const { position, scale, scaleZ, velocity, attraction, vlimit } =
-          this.instances[i];
-        this.dummyV
-          .copy(this.target)
-          .sub(position)
-          .normalize()
-          .multiplyScalar(attraction);
-        velocity.add(this.dummyV).clampScalar(-vlimit, vlimit);
-        position.add(velocity);
-        this.dummyO.position.copy(position);
-        this.dummyO.scale.set(scale, scale, scaleZ);
-        this.dummyO.lookAt(this.dummyV.copy(position).add(velocity));
-        this.dummyO.updateMatrix();
-        this.imesh.setMatrixAt(i, this.dummyO.matrix);
+      this.lightposition.x = positionV3.x;
+      this.lightposition.y = positionV3.y;
+      if (this.introshow) {
+        if (this.introcnt.length >= this.NUM_INTRO_INSTANCES * 0.8)
+          setTimeout(() => {
+            this.introshow = false;
+          }, 1000);
+        for (let i = 0; i < this.NUM_INTRO_INSTANCES; i++) {
+          const dummyO = new Object3D();
+          dummyO.position.copy(this.introinstances[i]);
+          dummyO.position.x = lerp(dummyO.position.x, 0, 0.02 + (i % 10) / 200);
+          dummyO.position.y = lerp(
+            dummyO.position.y,
+            10,
+            0.02 + (i % 10) / 200
+          );
+          dummyO.updateMatrix();
+          this.intro.setMatrixAt(i, dummyO.matrix);
+          this.introinstances[i].copy(dummyO.position);
+          if (!this.introcnt.includes(i))
+            if (
+              Math.abs(dummyO.position.x) < 10 &&
+              Math.abs(dummyO.position.y - 10) < 10
+            ) {
+              this.introcnt.push(i);
+            }
+
+          this.intro.instanceMatrix.needsUpdate = true;
+        }
+      }
+      if (this.cnt > 5) {
+        if (this.extrasize < this.textsize * 0.8 * 1.8 + 10) {
+          this.extrasize = lerp(this.extrasize, this.textsize * 0.8 * 1.8 + 10, 0.02);
+        }
+        for (let i = 0; i < this.NUM_INSTANCES; i++) {
+          const { position, scale, scaleZ, velocity, attraction, vlimit } =
+            this.instances[i];
+          this.dummyV
+            .copy(this.target)
+            .sub(position)
+            .normalize()
+            .multiplyScalar(attraction);
+          velocity.add(this.dummyV).clampScalar(-vlimit, vlimit);
+          position.add(velocity);
+          this.dummyO.position.copy(position);
+          this.dummyO.scale.set(scale, scale, scaleZ);
+          this.dummyO.lookAt(this.dummyV.copy(position).add(velocity));
+          this.dummyO.updateMatrix();
+          this.imesh.setMatrixAt(i, this.dummyO.matrix);
+        }
       }
       if (this.cnt > 10) {
         for (let i = 0; i < this.NUM_LINE_INSTANCES; i++) {
