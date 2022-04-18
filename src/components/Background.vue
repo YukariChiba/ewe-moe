@@ -100,7 +100,7 @@
             color="#666666"
             :props="{
               transparent: true,
-              opacity: 1 - introcnt.length / NUM_INTRO_INSTANCES,
+              opacity: Math.pow(1 - (introcnt.length / NUM_INTRO_INSTANCES)/1.5, 2),
               metalness: 0,
               roughness: 0.5,
             }"
@@ -256,9 +256,9 @@ export default {
     }
     for (let i = 0; i < this.NUM_INTRO_INSTANCES; i++) {
       const dummyO = new Object3D();
-      const position = new Vector3(rndFS(300), rndFS(300), rndFS(30) + 100);
+      const position = new Vector3(rndFS(500), rndFS(500), rndFS(500) - 200);
       this.introinstances.push(position);
-      const scale = rnd(0.2, 1);
+      const scale = Math.pow((i % 10) / 5, 2) + 1.5;
       dummyO.scale.set(scale, scale, scale);
       dummyO.position.copy(position);
       dummyO.updateMatrix();
@@ -308,6 +308,13 @@ export default {
             10,
             0.02 + (i % 10) / 200
           );
+          dummyO.position.z = lerp(
+            dummyO.position.z,
+            10,
+            0.02 + (i % 10) / 200
+          );
+          const scale = (i % 10) / 5 + 1;
+          dummyO.scale.set(scale, scale, scale);
           dummyO.updateMatrix();
           this.intro.setMatrixAt(i, dummyO.matrix);
           this.introinstances[i].copy(dummyO.position);
@@ -324,7 +331,11 @@ export default {
       }
       if (this.cnt > 5) {
         if (this.extrasize < this.textsize * 0.8 * 1.8 + 10) {
-          this.extrasize = lerp(this.extrasize, this.textsize * 0.8 * 1.8 + 10, 0.02);
+          this.extrasize = lerp(
+            this.extrasize,
+            this.textsize * 0.8 * 1.8 + 10,
+            0.02
+          );
         }
         for (let i = 0; i < this.NUM_INSTANCES; i++) {
           const { position, scale, scaleZ, velocity, attraction, vlimit } =
