@@ -2,19 +2,24 @@
   <v-dialog v-model="show" persistent>
     <v-card class="transparent-card">
       <v-card-title class="justify-center avatar-section">
-        <v-avatar size="128" color="primary" class="avatar" @click="pattern">
+        <v-avatar size="128" class="avatar" @click="pattern">
           <img src="/assets/avatar.jpg" alt="Yukari" />
         </v-avatar>
       </v-card-title>
       <v-card-title v-html="info.name" class="text-h5 justify-center">
       </v-card-title>
-      <v-card-title class="text-h6 justify-center">{{
-        info.namedesc
-      }}</v-card-title>
+      <v-card-title class="text-h6 justify-center" v-html="info.namedesc" />
       <v-card-text class="text-center" v-html="info.desc" />
 
       <v-card-actions class="justify-center">
-        <v-btn variant="outlined" class="main-btn" color="green darken-1" block large text @click="pclose"
+        <v-btn
+          variant="outlined"
+          class="main-btn"
+          color="green darken-1"
+          block
+          large
+          text
+          @click="pclose"
           ><v-icon>mdi-check</v-icon>
         </v-btn>
       </v-card-actions>
@@ -75,10 +80,11 @@ export default {
 }
 
 .main-btn {
-  background-color: rgba(0,0,0,0.2)
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 .transparent-card {
-  background-color: rgba(0,0,0,0.6);
+  background-color: rgba(0, 0, 0, 0.6);
+	backdrop-filter: blur(6px);
 }
 </style>

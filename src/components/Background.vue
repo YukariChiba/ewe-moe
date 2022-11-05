@@ -100,7 +100,10 @@
             color="#666666"
             :props="{
               transparent: true,
-              opacity: Math.pow(1 - (introcnt.length / NUM_INTRO_INSTANCES)/1.5, 2),
+              opacity: Math.pow(
+                1 - introcnt.length / NUM_INTRO_INSTANCES / 1.5,
+                2
+              ),
               metalness: 0,
               roughness: 0.5,
             }"

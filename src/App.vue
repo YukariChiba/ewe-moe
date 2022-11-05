@@ -15,12 +15,15 @@ import Background from "./components/Background.vue";
 import BottomNav from "./components/BottomNav.vue";
 import Warning from "./components/Warning.vue";
 
+import { ifCrawler } from "./utils/crawler";
+
 export default {
   data: () => ({
     show: false,
   }),
   mounted() {
-    this.show = localStorage.getItem("warningClose") || false
+    this.show = localStorage.getItem("warningClose") || false;
+    if (ifCrawler()) this.show = true;
   },
   components: { Background, BottomNav, Warning },
 };
