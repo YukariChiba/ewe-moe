@@ -6,7 +6,7 @@
       pointer
       resize="window"
       @mousemove="mouseMove"
-      @mousewheel="randomColors"
+      @wheel="randomColors"
       @touchmove="touchMove"
     >
       <Camera :position="{ z: 200 }" :fov="50" />

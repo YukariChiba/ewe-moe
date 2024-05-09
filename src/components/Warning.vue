@@ -1,13 +1,8 @@
 <template>
-  <v-dialog
-    v-model="show"
-    fullscreen
-    scrollable
-    transition="dialog-bottom-transition"
-  >
+  <v-dialog :modelValue="show" fullscreen scrollable transition="dialog-bottom-transition">
     <v-card class="pa-6 d-flex flex-column">
       <div class="flex-grow-1" />
-      <v-card-title class="justify-center text-orange flex-shrink-1">
+      <v-card-title class="text-center text-orange flex-shrink-1">
         <v-icon left>mdi-alert</v-icon> 光敏性癫痫警告
       </v-card-title>
       <v-card-text class="warning mt-6 mb-4 flex-grow-1">
@@ -25,8 +20,13 @@
           如果您或您的亲人有过癫痫发作或癫痫病史，请在浏览本页面前咨询医生。
         </p>
       </v-card-text>
-      <v-card-actions class="justify-center flex-shrink-1">
-        <v-btn class="pa-4" block size="x-large" @click="close" :disabled="cnt > 0"
+      <v-card-actions class="justify-center flex-shrink-1 pa-0">
+        <v-btn
+          class="pa-4"
+          block
+          size="x-large"
+          @click="close"
+          :disabled="cnt > 0"
           >我已知悉，点击此处以关闭 {{ cnt > 0 ? "(" + cnt + ")" : "" }}</v-btn
         >
       </v-card-actions>
@@ -93,7 +93,7 @@ p {
 .v-card-actions {
   align-items: baseline;
 }
-.v-card-title {
+.v-card-title, .v-btn {
   background-color: rgba(0, 0, 0, 0.5);
 }
 

@@ -1,15 +1,18 @@
 <template>
-  <v-dialog v-model="show" persistent>
+  <v-dialog :modelValue="show" persistent max-width="500">
     <v-card class="transparent-card">
-      <v-card-title class="justify-center avatar-section">
-        <v-avatar size="128" class="avatar" @click="pattern">
-          <img src="/assets/avatar.jpg" alt="Yukari" />
-        </v-avatar>
+      <v-card-title class="text-center avatar-section">
+        <v-avatar :image="avatar" size="128" class="avatar" @click="pattern" />
       </v-card-title>
-      <v-card-title v-html="info.name" class="text-h5 justify-center">
+      <v-card-title class="text-h5 text-center">
+        <div v-html="info.name" />
       </v-card-title>
-      <v-card-title class="text-h6 justify-center" v-html="info.namedesc" />
-      <v-card-text class="text-center" v-html="info.desc" />
+      <v-card-title class="text-h6 text-center">
+        <div v-html="info.namedesc" />
+      </v-card-title>
+      <v-card-text class="text-center">
+        <div v-html="info.desc" />
+      </v-card-text>
 
       <v-card-actions class="justify-center">
         <v-btn
@@ -30,11 +33,13 @@
 <script>
 import info from "../data/info.json";
 import axios from "axios";
+import avatar from "@/assets/avatar.jpg";
 
 export default {
   props: ["show", "cnt"],
   data: () => ({
     info: info,
+    avatar: avatar,
   }),
   watch: {
     show: function (val) {
@@ -85,6 +90,6 @@ export default {
 
 .transparent-card {
   background-color: rgba(0, 0, 0, 0.6);
-	backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
 }
 </style>

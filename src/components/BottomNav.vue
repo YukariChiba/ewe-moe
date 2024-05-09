@@ -38,7 +38,8 @@ export default {
 
 <style lang="scss" scoped>
 .nav-mobile {
-  background-color: rgba(255, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0);
+  color: rgba(255, 255, 255, 0.5);
   z-index: 99;
   position: absolute;
   bottom: 10vh;
@@ -46,11 +47,12 @@ export default {
 }
 
 .v-bottom-navigation {
-  background-color: rgba(255, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .v-btn {
-  background-color: rgba(255, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0);
   text-shadow: 0 0 10px #fff;
   &:before {
     box-shadow: unset;
