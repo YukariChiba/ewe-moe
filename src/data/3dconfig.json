@@ -1,0 +1,123 @@
+{
+  "title": {
+    "ref_position": { "x": 0, "y": 10, "z": 100 },
+    "size_coef": 0.03,
+    "material": {
+      "color": "#666666"
+    }
+  },
+  "extra_title": {
+    "ref_position": { "x": 0, "y": 10, "z": 80 },
+    "material": {
+      "color": "#666666",
+      "opacity": 0.2
+    }
+  },
+  "point": {
+    "count_coef": 66,
+    "default_palette": 83,
+    "ref_position": { "z": 50 },
+    "positions": [200, 200, 300],
+    "sizes": [
+      {
+        "rand": [5, 20],
+        "randgt": -1
+      },
+      {
+        "rand": [40, 70],
+        "randgt": 19.7
+      },
+      {
+        "rand": [100, 150],
+        "randgt": 67
+      },
+      {
+        "rand": [200, 300],
+        "randgt": 147
+      }
+    ]
+  },
+  "cursor": {
+    "init_positions": [200, 200, 200],
+    "count": 40,
+    "length": 2,
+    "radius": 1,
+    "material": {
+      "opacity": 0.9,
+      "metalness": 0.7,
+      "roughness": 0.5
+    }
+  },
+  "intro": {
+    "init_positions": [500, 500, 500],
+    "init_positions_offset": [0, 0, -200],
+    "count": 300,
+    "radius": 4,
+    "material": {
+      "color": "#666666",
+      "metalness": 0,
+      "roughness": 0.5
+    }
+  },
+  "line": {
+    "init_positions": [200, 200, 300],
+    "init_positions_offset": [0, 0, -300],
+    "count": 30,
+    "length": 300,
+    "radius": 1,
+    "speed_zs": {
+      "standard": 4,
+      "active": 8
+    },
+    "material": {
+      "opacity": 0.7,
+      "metalness": 0.1,
+      "roughness": 1
+    }
+  },
+  "light": {
+    "point": {
+      "position_z": 200,
+      "intensity": 0.3,
+      "colors": {
+        "standard": "#0060ff",
+        "active": "#ff0000"
+      }
+    },
+    "ambient": {
+      "color": "#808080",
+      "intensity": 0.5
+    }
+  },
+  "effects": {
+    "zoom": {
+      "coef": 0.004
+    },
+    "blur": {
+      "strength": 3,
+      "radius": 0.8,
+      "threshold": 0
+    },
+    "film": {
+      "noise": 5,
+      "scan_intensity": 0.3,
+      "scan_count": 512,
+      "grayscale": 0
+    }
+  },
+  "time": {
+    "coef_max": 40,
+    "lerp": 0.02
+  },
+  "cam": {
+    "ref_position": { "z": 200 },
+    "fov": 50
+  },
+  "rotation": {
+    "coef": 0.2
+  },
+  "extra": {
+    "stage1_click_count": 5,
+    "stage2_click_count": 10
+  }
+}

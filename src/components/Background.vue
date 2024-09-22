@@ -6,16 +6,19 @@
       pointer
       resize="window"
       @mousemove="mouseMove"
-      @wheel="randomColors"
+      @wheel="updateColors(-1)"
       @touchmove="touchMove"
     >
-      <Camera :position="{ z: 200 }" :fov="50" />
+      <Camera :position="cfg.cam.ref_position" :fov="cfg.cam.fov" />
       <Scene>
-        <AmbientLight color="#808080" :intensity="0.5" />
+        <AmbientLight
+          :color="cfg.light.ambient.color"
+          :intensity="cfg.light.ambient.intensity"
+        />
         <PointLight
           ref="light"
           :color="envColor"
-          :intensity="0.3"
+          :intensity="cfg.light.point.intensity"
           :position="lightposition"
         />
         <Text
@@ -25,47 +28,35 @@
           font-src="/assets/font.json"
           align="center"
           :size="
-            introcnt.length > NUM_INTRO_INSTANCES * 0.8
+            introcnt.length > cfg.intro.count * 0.8
               ? textsize
-              : (textsize * introcnt.length) / (NUM_INTRO_INSTANCES * 0.8)
+              : (textsize * introcnt.length) / (cfg.intro.count * 0.8)
           "
           @click="togglepopup(true)"
           :height="0"
-          :position="{ x: 0, y: 10, z: 100 }"
+          :position="cfg.title.ref_position"
         >
-          <PhongMaterial color="#666666" />
+          <PhongMaterial :color="cfg.title.material.color" />
         </Text>
         <Text
-          v-if="cnt > 5"
+          v-if="clickcnt > cfg.extra.stage1_click_count"
           ref="title_extra"
           :text="info.title"
           font-src="/assets/font.json"
           align="center"
           :size="extrasize"
           :height="0"
-          :position="{ x: 0, y: 10, z: 80 }"
+          :position="cfg.extra_title.ref_position"
         >
           <PhongMaterial
-            color="#666666"
+            :color="cfg.extra_title.material.color"
             :props="{
               transparent: true,
-              opacity: 0.2,
+              opacity: cfg.extra_title.material.opacity,
             }"
           />
         </Text>
-        <Text
-          v-if="hint"
-          ref="hint"
-          :text="hint"
-          align="center"
-          font-src="/assets/font.json"
-          :size="0.01"
-          :height="0"
-          :position="{ x: 0, y: 20, z: 100 }"
-        >
-          <PhongMaterial color="#fff" />
-        </Text>
-        <Points ref="points" :position="{ z: 50 }">
+        <Points ref="points" :position="cfg.point.ref_position">
           <BufferGeometry :attributes="attributes" />
           <ShaderMaterial
             :props="{
@@ -79,57 +70,68 @@
             <Texture src="/assets/sprite.png" uniform="uTexture" />
           </ShaderMaterial>
         </Points>
-        <InstancedMesh ref="lines" :count="NUM_LINE_INSTANCES">
-          <ConeGeometry :radius="1" :height="300" :radialSegments="32" />
+        <InstancedMesh ref="lines" :count="cfg.line.count">
+          <ConeGeometry
+            :radius="cfg.line.radius"
+            :height="cfg.line.length"
+            :radialSegments="32"
+          />
           <StandardMaterial
             :props="{
               transparent: true,
-              opacity: cnt > 10 ? 0.7 : 0,
-              metalness: 0.4,
-              roughness: 1,
+              opacity:
+                clickcnt > cfg.extra.stage2_click_count
+                  ? cfg.line.material.opacity
+                  : 0,
+              metalness: cfg.line.material.metalness,
+              roughness: cfg.line.material.roughness,
             }"
           />
         </InstancedMesh>
-        <InstancedMesh
-          ref="intro"
-          v-if="introshow"
-          :count="NUM_INTRO_INSTANCES"
-        >
-          <SphereGeometry :radius="4" />
+        <InstancedMesh ref="intro" v-if="introshow" :count="cfg.intro.count">
+          <SphereGeometry :radius="cfg.intro.radius" />
           <StandardMaterial
-            color="#666666"
+            :color="cfg.intro.material.color"
             :props="{
               transparent: true,
-              opacity: Math.pow(
-                1 - introcnt.length / NUM_INTRO_INSTANCES / 1.5,
-                2
-              ),
-              metalness: 0,
-              roughness: 0.5,
+              opacity: Math.pow(1 - introcnt.length / cfg.intro.count / 1.5, 2),
+              metalness: cfg.intro.material.metalness,
+              roughness: cfg.intro.material.roughness,
             }"
           />
         </InstancedMesh>
-        <InstancedMesh ref="imesh" :count="NUM_INSTANCES">
-          <BoxGeometry :width="1" :height="2" :depth="15" />
+        <InstancedMesh ref="cursor" :count="cfg.cursor.count">
+          <BoxGeometry
+            :width="cfg.cursor.radius"
+            :height="cfg.cursor.length"
+            :depth="15"
+          />
           <StandardMaterial
             :props="{
               transparent: true,
-              opacity: cnt > 5 ? 0.9 : 0,
-              metalness: 0.7,
-              roughness: 0.5,
+              opacity:
+                clickcnt > cfg.extra.stage1_click_count
+                  ? cfg.cursor.material.opacity
+                  : 0,
+              metalness: cfg.cursor.material.metalness,
+              roughness: cfg.cursor.material.metalness,
             }"
           />
         </InstancedMesh>
       </Scene>
       <EffectComposer>
         <RenderPass />
-        <UnrealBloomPass :strength="3" :radius="0.8" :threshold="0" />
-        <ZoomBlurPass :strength="zoomStrength" />
+        <UnrealBloomPass
+          :strength="cfg.effects.blur.strength"
+          :radius="cfg.effects.blur.radius"
+          :threshold="cfg.effects.blur.threshold"
+        />
+        <ZoomBlurPass :strength="timeCoef * cfg.effects.zoom.coef" />
         <FilmPass
-          :noiseIntensity="5"
-          :scanlinesIntensity="0.3"
-          :scanlinesCount="512"
-          :grayscale="0"
+          :noiseIntensity="cfg.effects.film.noise"
+          :scanlinesIntensity="cfg.effects.film.scan_intensity"
+          :scanlinesCount="cfg.effects.film.scan_count"
+          :grayscale="cfg.effects.film.grayscale"
           v-if="showpopup"
         />
       </EffectComposer>
@@ -138,22 +140,28 @@
       :show="showpopup"
       @pclose="togglepopup(false)"
       @pattern="updateColors"
-      :cnt="cnt"
+      :cnt="clickcnt"
     />
   </div>
 </template>
 
 <script>
 import { vertexShader, fragmentShader } from "../data/shaders";
-
-import { Object3D, Clock, Color, MathUtils, Vector3 } from "three";
-
+import { Object3D, Clock, MathUtils, Vector3 } from "three";
 import { lerp } from "troisjs";
+const { randFloat: rnd } = MathUtils;
 
-const { randFloat: rnd, randInt, randFloatSpread: rndFS } = MathUtils;
-
-import niceColors from "../data/colors";
 import info from "../data/info.json";
+import cfg from "../data/3dconfig.json";
+import {
+  point_size_rand,
+  point_position_rand,
+  point_color_rand,
+  time_coef_update,
+  rotation_update,
+  object_matrix_update,
+  vector_rand,
+} from "../utils/render_helper";
 import Popup from "./Popup.vue";
 
 export default {
@@ -162,50 +170,37 @@ export default {
     vertexShader: vertexShader,
     fragmentShader: fragmentShader,
     uniforms: { uTime: { value: 0 } },
-    zoomStrength: 0.5,
-    timeCoef: 1,
     textsize: 30,
     extrasize: 30,
     info: info,
+    timeCoef: 1,
     targetTimeCoef: 1,
-    envColor: "#0060ff",
-    stbyColor: "#ff0000",
+    envColor: cfg.light.point.colors.standard,
     showpopup: false,
     invert: 0,
-    cnt: 0,
+    clickcnt: 0,
     introshow: true,
     introcnt: [],
-    hint: null,
-    lightposition: { x: 0, y: 0, z: 200 },
-    linespeed: new Vector3(0, 0, 4),
-    NUM_INSTANCES: 40,
-    NUM_LINE_INSTANCES: 30,
-    NUM_INTRO_INSTANCES: 300,
+    lightposition: { x: 0, y: 0, z: cfg.light.point.position_z },
+    linespeed: new Vector3(0, 0, cfg.line.speed_zs.standard),
     instances: [],
     lineinstances: [],
     introinstances: [],
+    cfg: cfg,
+    clock: new Clock(),
   }),
   setup() {
-    let POINTS_COUNT = 40000;
-
-    if (window.innerWidth > 1920 || window.innerHeight > 1080)
-      POINTS_COUNT = 100000;
-
-    const palette = niceColors[83];
+    const POINTS_COUNT =
+      Math.sqrt(window.innerWidth * window.innerHeight) * cfg.point.count_coef;
 
     const positions = new Float32Array(POINTS_COUNT * 3);
     const colors = new Float32Array(POINTS_COUNT * 3);
     const sizes = new Float32Array(POINTS_COUNT);
-    const v3 = new Vector3(),
-      color = new Color();
+
     for (let i = 0; i < POINTS_COUNT; i++) {
-      v3.set(rndFS(200), rndFS(200), rndFS(300));
-      v3.toArray(positions, i * 3);
-      color.set(palette[Math.floor(rnd(0, palette.length))]);
-      color.toArray(colors, i * 3);
-      let rand = rnd(5, 20);
-      if (rand > 19.7) rand = rnd(40, 70);
-      sizes[i] = rand;
+      point_position_rand(cfg).toArray(positions, i * 3);
+      point_color_rand(cfg).toArray(colors, i * 3);
+      sizes[i] = point_size_rand(cfg);
     }
 
     const attributes = [
@@ -214,95 +209,81 @@ export default {
       { name: "size", array: sizes, itemSize: 1 },
     ];
 
-    const uniforms = { uTime: { value: 0 } };
-
-    const clock = new Clock();
-
-    const target = new Vector3();
-    const dummyO = new Object3D();
-    const dummyV = new Vector3();
-
     return {
       POINTS_COUNT,
       attributes,
-      uniforms,
-      clock,
-      target,
-      dummyO,
-      dummyV,
     };
   },
   mounted() {
     const points = this.$refs.points.points;
-    this.textsize = Math.min(window.innerWidth, window.innerHeight) * 0.03;
-    this.imesh = this.$refs.imesh.mesh;
+    this.textsize =
+      Math.min(window.innerWidth, window.innerHeight) * cfg.title.size_coef;
+    this.cursor = this.$refs.cursor.mesh;
     this.intro = this.$refs.intro.mesh;
     this.lines = this.$refs.lines.mesh;
     const positionN = this.$refs.renderer.three.pointer.positionN;
     const positionV3 = this.$refs.renderer.three.pointer.positionV3;
-    for (let i = 0; i < this.NUM_INSTANCES; i++) {
+    for (let i = 0; i < this.cfg.cursor.count; i++) {
       this.instances.push({
-        position: new Vector3(rndFS(200), rndFS(200), rndFS(200)),
+        position: vector_rand(this.cfg.cursor.init_positions),
         scale: rnd(0.2, 1),
         scaleZ: rnd(0.7, 1),
-        velocity: new Vector3(rndFS(20), rndFS(20), rndFS(20)),
+        velocity: vector_rand([20, 20, 20]),
         attraction: 0.2 + rnd(-0.01, 0.01),
         vlimit: 3.2 + rnd(-0.1, 0.1),
       });
     }
-    for (let i = 0; i < this.NUM_INSTANCES; i++) {
+    for (let i = 0; i < this.cfg.cursor.count; i++) {
       const { position, scale, scaleZ } = this.instances[i];
-      this.dummyO.position.copy(position);
-      this.dummyO.scale.set(scale, scale, scaleZ);
-      this.dummyO.updateMatrix();
-      this.intro.setMatrixAt(i, this.dummyO.matrix);
+      object_matrix_update(this.intro, i, position, [scale, scale, scaleZ]);
     }
-    for (let i = 0; i < this.NUM_INTRO_INSTANCES; i++) {
-      const dummyO = new Object3D();
-      const position = new Vector3(rndFS(500), rndFS(500), rndFS(500) - 200);
+    for (let i = 0; i < this.cfg.intro.count; i++) {
+      const position = vector_rand(
+        this.cfg.intro.init_positions,
+        this.cfg.intro.init_positions_offset
+      );
       this.introinstances.push(position);
       const scale = Math.pow((i % 10) / 5, 2) + 1.5;
-      dummyO.scale.set(scale, scale, scale);
-      dummyO.position.copy(position);
-      dummyO.updateMatrix();
-      this.lines.setMatrixAt(i, dummyO.matrix);
+      object_matrix_update(this.intro, i, position, [scale, scale, scale]);
     }
-    for (let i = 0; i < this.NUM_LINE_INSTANCES; i++) {
-      const dummyO = new Object3D();
-      const position = new Vector3(rndFS(200), rndFS(200), rndFS(300) - 500);
+    for (let i = 0; i < this.cfg.line.count; i++) {
+      const position = vector_rand(
+        this.cfg.line.init_positions,
+        this.cfg.line.init_positions_offset
+      );
       this.lineinstances.push(position);
       const scale = rnd(0.2, 1);
       const scaleZ = rnd(0.7, 1);
-      dummyO.position.copy(position);
-      dummyO.scale.set(scale, scale, scaleZ);
-      dummyO.updateMatrix();
-      this.lines.setMatrixAt(i, dummyO.matrix);
+      object_matrix_update(this.lines, i, position, [scale, scale, scaleZ]);
     }
-    this.imesh.instanceMatrix.needsUpdate = true;
+    this.cursor.instanceMatrix.needsUpdate = true;
     this.$refs.renderer.onBeforeRender(() => {
-      this.timeCoef = lerp(this.timeCoef, this.targetTimeCoef, 0.02);
+      this.timeCoef = lerp(
+        this.timeCoef,
+        this.targetTimeCoef,
+        this.cfg.time.lerp
+      );
       this.uniforms.uTime.value += this.clock.getDelta() * this.timeCoef * 4;
-      this.zoomStrength = this.timeCoef * 0.004;
-      const da = 0.3;
+      const da = this.cfg.rotation.coef;
       const tiltX = lerp(points.rotation.x, positionN.y * da, 0.02);
       const tiltY = lerp(points.rotation.y, -positionN.x * da, 0.02);
-      points.rotation.set(tiltX, tiltY, 0);
-      this.lines.rotation.set(tiltX, tiltY, 0);
-      if (this.$refs.title.mesh)
-        this.$refs.title.mesh.rotation.set(tiltX * 2, tiltY * 2, 0);
-      if (this.cnt > 5)
-        if (this.$refs.title_extra.mesh)
-          this.$refs.title_extra.mesh.rotation.set(tiltX * 2, tiltY * 2, 0);
 
-      this.target.copy(positionV3);
+      rotation_update(points, tiltX, tiltY);
+      rotation_update(this.lines, tiltX, tiltY);
+      rotation_update(this.$refs.title.mesh, tiltX, tiltY, 2);
+      if (this.clickcnt > this.cfg.extra.stage1_click_count)
+        rotation_update(this.$refs.title_extra.mesh, tiltX, tiltY, 2);
+
+      const target = new Vector3();
+      target.copy(positionV3);
       this.lightposition.x = positionV3.x;
       this.lightposition.y = positionV3.y;
       if (this.introshow) {
-        if (this.introcnt.length >= this.NUM_INTRO_INSTANCES * 0.8)
+        if (this.introcnt.length >= this.cfg.intro.count * 0.8)
           setTimeout(() => {
             this.introshow = false;
           }, 1000);
-        for (let i = 0; i < this.NUM_INTRO_INSTANCES; i++) {
+        for (let i = 0; i < this.cfg.intro.count; i++) {
           const dummyO = new Object3D();
           dummyO.position.copy(this.introinstances[i]);
           dummyO.position.x = lerp(dummyO.position.x, 0, 0.02 + (i % 10) / 200);
@@ -332,7 +313,7 @@ export default {
           this.intro.instanceMatrix.needsUpdate = true;
         }
       }
-      if (this.cnt > 5) {
+      if (this.clickcnt > this.cfg.extra.stage1_click_count) {
         if (this.extrasize < this.textsize * 0.8 * 1.8 + 10) {
           this.extrasize = lerp(
             this.extrasize,
@@ -340,32 +321,38 @@ export default {
             0.02
           );
         }
-        for (let i = 0; i < this.NUM_INSTANCES; i++) {
+        for (let i = 0; i < this.cfg.cursor.count; i++) {
           const { position, scale, scaleZ, velocity, attraction, vlimit } =
             this.instances[i];
-          this.dummyV
-            .copy(this.target)
+          const dummyV = new Vector3();
+          dummyV
+            .copy(target)
             .sub(position)
             .normalize()
             .multiplyScalar(attraction);
-          velocity.add(this.dummyV).clampScalar(-vlimit, vlimit);
+          velocity.add(dummyV).clampScalar(-vlimit, vlimit);
           position.add(velocity);
-          this.dummyO.position.copy(position);
-          this.dummyO.scale.set(scale, scale, scaleZ);
-          this.dummyO.lookAt(this.dummyV.copy(position).add(velocity));
-          this.dummyO.updateMatrix();
-          this.imesh.setMatrixAt(i, this.dummyO.matrix);
+          object_matrix_update(
+            this.cursor,
+            i,
+            position,
+            [scale, scale, scaleZ],
+            dummyV.copy(position).add(velocity)
+          );
         }
       }
-      if (this.cnt > 10) {
-        for (let i = 0; i < this.NUM_LINE_INSTANCES; i++) {
+      if (this.clickcnt > this.cfg.extra.stage2_click_count) {
+        for (let i = 0; i < this.cfg.line.count; i++) {
           const dummyO = new Object3D();
           dummyO.position.copy(this.lineinstances[i]);
           if (dummyO.position.z < 300) {
             dummyO.position.add(this.linespeed);
           } else {
             dummyO.position.copy(
-              new Vector3(rndFS(200), rndFS(200), rndFS(300) - 300)
+              vector_rand(
+                this.cfg.line.init_positions,
+                this.cfg.line.init_positions_offset
+              )
             );
           }
           dummyO.rotation.set(-Math.PI / 2, 0, 0, "XYZ");
@@ -375,14 +362,14 @@ export default {
         }
         this.lines.instanceMatrix.needsUpdate = true;
       }
-      this.imesh.instanceMatrix.needsUpdate = true;
+      this.cursor.instanceMatrix.needsUpdate = true;
     });
   },
   methods: {
     togglepopup(val) {
-      this.cnt++;
+      this.clickcnt++;
       if (!val)
-        if (this.cnt > 5) {
+        if (this.clickcnt > this.cfg.extra.stage1_click_count) {
           setTimeout(() => {
             this.invert = 100;
             setTimeout(() => {
@@ -396,48 +383,27 @@ export default {
       this.mouseMove(event.touches[0]);
     },
     mouseMove(event) {
-      if (this.targetTimeCoef != 40)
-        this.targetTimeCoef = Math.min(
-          Math.pow(
-            4 *
-              (1 -
-                Math.abs(event.clientX - window.innerWidth / 2) /
-                  (window.innerWidth / 2)),
-            2
-          ) +
-            Math.pow(
-              4 *
-                (1 -
-                  Math.abs(event.clientY - window.innerHeight / 2) /
-                    (window.innerHeight / 2)),
-              2
-            ),
-          25
-        );
+      this.targetTimeCoef = time_coef_update(
+        this.cfg,
+        event,
+        this.targetTimeCoef
+      );
     },
     titleOver(e) {
-      var t = this.stbyColor;
-      this.stbyColor = this.envColor;
-      this.envColor = t;
       if (e.over) {
-        this.linespeed.z = this.linespeed.z + 4;
-        this.targetTimeCoef = 40;
+        this.envColor = this.cfg.light.point.colors.active;
+        this.linespeed.z = this.cfg.line.speed_zs.active;
+        this.targetTimeCoef = this.cfg.time.coef_max;
       } else {
-        this.linespeed.z = this.linespeed.z - 4;
-        this.targetTimeCoef = 39.9;
+        this.envColor = this.cfg.light.point.colors.standard;
+        this.linespeed.z = this.cfg.line.speed_zs.standard;
+        this.targetTimeCoef = this.cfg.time.coef_max - 0.01;
       }
     },
-    randomColors() {
-      this.updateColors(randInt(0, niceColors.length - 1));
-    },
-    updateColors(ip = 83) {
+    updateColors(ip = null) {
       const colorAttribute = this.$refs.points.geometry.attributes.color;
-      if (ip == -1) ip = randInt(1, 99);
-      const palette = niceColors[ip];
-      const color = new Color();
       for (let i = 0; i < this.POINTS_COUNT; i++) {
-        color.set(palette[randInt(0, palette.length)]);
-        color.toArray(colorAttribute.array, i * 3);
+        point_color_rand(cfg, ip).toArray(colorAttribute.array, i * 3);
       }
       colorAttribute.needsUpdate = true;
     },
