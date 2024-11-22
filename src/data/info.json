@@ -33,6 +33,11 @@
       "title": "Twitter",
       "icon": "twitter",
       "url": "https://twitter.com/YukariEwe"
+    },
+    {
+      "title": "OS",
+      "icon": "disc",
+      "url": "https://os.ewe.moe"
     }
   ]
 }

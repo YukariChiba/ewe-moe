@@ -1,9 +1,18 @@
 <template>
-  <v-dialog :modelValue="show" fullscreen scrollable transition="dialog-bottom-transition">
+  <v-dialog
+    :modelValue="show"
+    fullscreen
+    scrollable
+    transition="dialog-bottom-transition"
+  >
     <v-card class="pa-6 d-flex flex-column">
       <div class="flex-grow-1" />
-      <v-card-title class="text-center text-orange flex-shrink-1">
+      <v-card-title class="text-center text-orange flex-shrink-2">
         <v-icon left>mdi-alert</v-icon> 光敏性癫痫警告
+        <br />
+        <small>
+          <v-icon left>mdi-alert</v-icon> Photosensitive Epilepsy Warning
+        </small>
       </v-card-title>
       <v-card-text class="warning mt-6 mb-4 flex-grow-1">
         <p>
@@ -19,6 +28,37 @@
         <p>
           如果您或您的亲人有过癫痫发作或癫痫病史，请在浏览本页面前咨询医生。
         </p>
+        <br />
+        <p>
+          A very small percentage of people may experience epileptic seizures or
+          blackouts when exposed to certain kinds of flashing lights or light
+          patterns. These persons, or even people who have no history of
+          seizures or epilepsy, may experience epileptic symptoms or seizures
+          while viewing this content.
+        </p>
+        <p>
+          Seizures may have a variety of symptoms, including mild headaches,
+          blurred vision, eye or facial twitching, spasms or shaking of the
+          limbs, disorientation, confusion or temporary loss of consciousness.
+          Seizures may also result in loss of consciousness or convulsions,
+          which in turn may cause the person to suffer injuries from falling or
+          striking a nearby object.
+        </p>
+        <p>
+          If you experience any of these symptoms, stop viewing this page
+          immediately and consult your doctor. Parents should watch for or ask
+          their children if they experience any of these symptoms. Children and
+          adolescents are more likely to experience seizures than adults. You
+          may reduce risk of photosensitive epileptic seizures by taking the
+          following precautions: sit farther from the screen; use a smaller
+          screen; view this page in a well-lit room; and do not view this page
+          when drowsy or fatigued.
+        </p>
+        <p>
+          If you or any of your relatives has an epileptic condition or has had
+          seizures of any kind, consult your physician before viewing this
+          content.
+        </p>
       </v-card-text>
       <v-card-actions class="justify-center flex-shrink-1 pa-0">
         <v-btn
@@ -27,8 +67,14 @@
           size="x-large"
           @click="close"
           :disabled="cnt > 0"
-          >我已知悉，点击此处以关闭 {{ cnt > 0 ? "(" + cnt + ")" : "" }}</v-btn
         >
+          <span class="hidden-md-and-up">
+            知悉并关闭 / Ack & Close {{ cnt > 0 ? "(" + cnt + ")" : "" }}
+          </span>
+          <span class="hidden-sm-and-down">
+            我已知悉，点击此处以关闭 / I am aware of this, click here to close {{ cnt > 0 ? "(" + cnt + ")" : "" }}
+          </span>
+        </v-btn>
       </v-card-actions>
       <div class="flex-grow-1" />
     </v-card>
@@ -93,7 +139,8 @@ p {
 .v-card-actions {
   align-items: baseline;
 }
-.v-card-title, .v-btn {
+.v-card-title,
+.v-btn {
   background-color: rgba(0, 0, 0, 0.5);
 }
 
